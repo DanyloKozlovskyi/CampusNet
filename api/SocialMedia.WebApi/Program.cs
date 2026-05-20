@@ -155,7 +155,8 @@ builder.Services.AddScoped(typeof(IEntityRepository<,>), typeof(EntityRepository
 builder.Services.AddScoped<IPostRankingCache, PostRankingCache>();
 builder.Services.AddScoped<IBlogRepository, BlogRepositoryCacheDecorator>();
 builder.Services.AddTransient<IJwtService, JwtService>();
-builder.Services.AddScoped<IBlogService, BlogService>();
+builder.Services.AddScoped<BlogService>();
+builder.Services.AddScoped<IBlogService, BlogServiceCacheDecorator>();
 builder.Services.AddScoped<IImageRepository, R2ImageRepository>();
 builder.Services.AddScoped<IUploadUrlFactory, UploadUrlFactory>();
 builder.Services.AddScoped<IImageService, ImageService>();
