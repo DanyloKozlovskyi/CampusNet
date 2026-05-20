@@ -36,7 +36,7 @@ const UniversityModeToggle = () => {
   }, [universityDomain]);
 
   // Don't render if user has no university
-  if (!universityDomain) return null;
+  if (!universityDomain || universityDomain === "null") return null;
 
   const handleToggle = () => {
     setUniversityMode(!isUniversityMode);
