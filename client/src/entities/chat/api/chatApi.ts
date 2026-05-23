@@ -35,10 +35,14 @@ export const chatApi = {
   async createGroupConversation(
     name: string,
     participantIds: string[],
+    logoKey?: string,
+    logoContentType?: string,
   ): Promise<{ conversationId: string }> {
     const response = await api.post("/messages/conversation/group", {
       name,
       participantIds,
+      logoKey,
+      logoContentType,
     });
     return response.data;
   },

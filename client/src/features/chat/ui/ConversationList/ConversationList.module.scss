@@ -7,11 +7,36 @@
 }
 
 .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 16px;
   border-bottom: 1px solid #e0e0e0;
   font-weight: 600;
   font-size: 18px;
   color: #333;
+}
+
+.newChatButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1976d2;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #1565c0;
+  }
+
+  svg {
+    font-size: 20px;
+  }
 }
 
 .list {

@@ -15,6 +15,8 @@ interface ChatStore extends ChatState {
   createGroupConversation: (
     name: string,
     participantIds: string[],
+    logoKey?: string,
+    logoContentType?: string,
   ) => Promise<string | null>;
   sendMessage: (
     conversationId: string,
@@ -166,11 +168,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  createGroupConversation: async (name: string, participantIds: string[]) => {
+  createGroupConversation: async (
+    name: string,
+    participantIds: string[],
+    logoKey?: string,
+    logoContentType?: string,
+  ) => {
     try {
       const result = await chatApi.createGroupConversation(
         name,
         participantIds,
+        logoKey,
+        logoContentType,
       );
       await get().loadConversations();
       return result.conversationId;

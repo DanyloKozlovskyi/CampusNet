@@ -22,6 +22,7 @@ public class ChatService : IChatService
         {
             ConversationId = c.Id,
             Name = c.Name,
+            LogoKey = c.LogoKey,
             Type = c.Type,
             UniversityDomain = c.UniversityDomain,
             FacultyCode = c.FacultyCode,
@@ -95,8 +96,13 @@ public class ChatService : IChatService
         return conversation.Id;
     }
 
-    public async Task<Guid> CreateGroupConversation(Guid currentUserId, string? name, List<Guid> participantIds)
+    public async Task<Guid> CreateGroupConversation(Guid currentUserId, string? name, List<Guid> participantIds, string? logoKey = null, string? logoContentType = null)
     {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Group name is required");
+        }
+
         if (participantIds == null || participantIds.Count < 2)
         {
             throw new ArgumentException("Group must have at least 2 other participants");
@@ -105,7 +111,10 @@ public class ChatService : IChatService
         var conversation = new Conversation
         {
             Id = Guid.NewGuid(),
-            Name = name,
+            Name = name.Trim(),
+            LogoKey = logoKey,
+            LogoContentType = logoContentType,
+            Type = ConversationType.Group,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

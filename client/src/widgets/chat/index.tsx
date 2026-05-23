@@ -6,6 +6,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useChatStore } from "@features/chat/model/store";
 import { ConversationList } from "@features/chat/ui/ConversationList";
 import { ChatWindow } from "@features/chat/ui/ChatWindow";
+import { ConversationType, isUniversityChatType } from "@entities/chat";
 import classes from "./GlobalChatWidget.module.scss";
 
 interface GlobalChatWidgetProps {
@@ -96,7 +97,18 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
   const activeConversation = conversations.find(
     (c) => c.conversationId === activeConversationId,
   );
-  const otherParticipant = activeConversation?.participants[0];
+
+  const isDirectChat =
+    activeConversation?.type === ConversationType.Direct ||
+    activeConversation?.type === undefined;
+  const otherParticipant = activeConversation?.participants.find(
+    (p) => p.userId !== currentUserId,
+  ) || activeConversation?.participants[0];
+
+  const chatTitle = isDirectChat
+    ? otherParticipant?.name || "Unknown User"
+    : activeConversation?.name ||
+      `Group (${activeConversation?.participants.length || 0})`;
 
   if (widgetState === "collapsed") {
     return (
@@ -121,6 +133,7 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
         <ConversationList
           conversations={conversations}
           activeConversationId={activeConversationId}
+          currentUserId={currentUserId}
           onSelectConversation={handleSelectConversation}
         />
         <button
@@ -141,14 +154,21 @@ export const GlobalChatWidget: React.FC<GlobalChatWidgetProps> = ({
         key={activeConversationId}
         messages={messages}
         currentUserId={currentUserId}
+        conversation={activeConversation}
         otherUser={
-          otherParticipant
+          isDirectChat && otherParticipant
             ? {
                 id: otherParticipant.userId,
                 name: otherParticipant.name,
                 logoKey: otherParticipant.logoKey,
               }
-            : undefined
+            : !isDirectChat
+              ? {
+                  id: "",
+                  name: chatTitle,
+                  logoKey: undefined,
+                }
+              : undefined
         }
         isLoading={isLoading}
         onSendMessage={handleSendMessage}

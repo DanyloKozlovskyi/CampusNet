@@ -6,6 +6,7 @@ public class ConversationDto
 {
     public Guid ConversationId { get; set; }
     public string? Name { get; set; }
+    public string? LogoKey { get; set; }
     public ConversationType Type { get; set; }
     public string? UniversityDomain { get; set; }
     public string? FacultyCode { get; set; }

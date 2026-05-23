@@ -181,6 +181,7 @@ export const ConversationInfoModal: React.FC<ConversationInfoModalProps> = ({
             type={conversation.type ?? ConversationType.Group}
             logoUrl={logoUrl}
             name={conversation.name}
+            fallbackLogoKey={conversation.logoKey || null}
             size="large"
           />
           <h2 className={classes.name}>

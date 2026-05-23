@@ -99,7 +99,12 @@ public class MessagesController : ControllerBase
 
 		try
 		{
-			var conversationId = await _chatService.CreateGroupConversation(currentUserId, request.Name, request.ParticipantIds);
+			var conversationId = await _chatService.CreateGroupConversation(
+				currentUserId, 
+				request.Name, 
+				request.ParticipantIds,
+				request.LogoKey,
+				request.LogoContentType);
 			return Ok(new { ConversationId = conversationId });
 		}
 		catch (ArgumentException ex)

@@ -26,7 +26,9 @@ export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
 
   if (type === ConversationType.Major) {
     return (
-      <div className={`${classes.avatar} ${classes.iconAvatar} ${classes.majorIcon} ${sizeClass}`}>
+      <div
+        className={`${classes.avatar} ${classes.iconAvatar} ${classes.majorIcon} ${sizeClass}`}
+      >
         <MenuBookIcon />
       </div>
     );
@@ -34,7 +36,9 @@ export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
 
   if (type === ConversationType.MajorYear) {
     return (
-      <div className={`${classes.avatar} ${classes.iconAvatar} ${classes.yearIcon} ${sizeClass}`}>
+      <div
+        className={`${classes.avatar} ${classes.iconAvatar} ${classes.yearIcon} ${sizeClass}`}
+      >
         <CalendarTodayIcon />
       </div>
     );
@@ -53,7 +57,7 @@ export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
     );
   }
 
-  if (fallbackLogoKey !== undefined) {
+  if (fallbackLogoKey) {
     return (
       <UserLogo
         className={`${classes.avatar} ${sizeClass}`}
@@ -64,7 +68,9 @@ export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
   }
 
   return (
-    <div className={`${classes.avatar} ${classes.iconAvatar} ${classes.defaultIcon} ${sizeClass}`}>
+    <div
+      className={`${classes.avatar} ${classes.iconAvatar} ${classes.defaultIcon} ${sizeClass}`}
+    >
       <PeopleIcon />
     </div>
   );

@@ -113,6 +113,8 @@ export const GroupChatCreation: React.FC = () => {
   }
 
   if (step === "name") {
+    const showNameError = groupName.length === 0;
+
     return (
       <div className={classes.groupCreation}>
         <div className={classes.header}>
@@ -135,15 +137,21 @@ export const GroupChatCreation: React.FC = () => {
         </div>
 
         <div className={classes.groupNameSection}>
+          <label className={classes.groupNameLabel}>
+            Group Name <span className={classes.required}>*</span>
+          </label>
           <input
             type="text"
-            placeholder="Group name"
+            placeholder="Enter group name"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
             maxLength={100}
             autoFocus
-            className={classes.groupNameInput}
+            className={`${classes.groupNameInput} ${showNameError ? classes.inputError : ""}`}
           />
+          {showNameError && (
+            <span className={classes.errorText}>Group name is required</span>
+          )}
         </div>
 
         <div className={classes.selectedSection}>

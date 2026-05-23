@@ -17,6 +17,7 @@ import classes from "./ConversationItem.module.scss";
 interface ConversationItemProps {
   conversation: Conversation;
   isActive: boolean;
+  currentUserId?: string;
   onClick: () => void;
   onLeave?: (conversationId: string) => void;
 }
@@ -24,6 +25,7 @@ interface ConversationItemProps {
 export const ConversationItem: React.FC<ConversationItemProps> = ({
   conversation,
   isActive,
+  currentUserId,
   onClick,
   onLeave,
 }) => {
@@ -92,14 +94,20 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     return date.toLocaleDateString([], { month: "short", day: "numeric" });
   };
 
-  const isGroupChat = conversation.participants.length > 1 || isUniversityType;
-  const otherParticipant = conversation.participants[0];
+  const isDirectChat =
+    conversation.type === ConversationType.Direct ||
+    conversation.type === undefined;
+  const isGroupChat = !isDirectChat && !isUniversityType;
+  const otherParticipant = currentUserId
+    ? conversation.participants.find((p) => p.userId !== currentUserId) ||
+      conversation.participants[0]
+    : conversation.participants[0];
 
   const translatedName = translateConversationName(conversation);
   const displayName = isUniversityType
     ? translatedName || conversation.name || "Community Chat"
     : isGroupChat
-      ? conversation.name || `Group (${conversation.participants.length + 1})`
+      ? conversation.name || `Group (${conversation.participants.length})`
       : otherParticipant?.name || "Unknown User";
 
   const renderAvatar = () => (
@@ -107,7 +115,11 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
       type={conversation.type ?? ConversationType.Direct}
       logoUrl={logoUrl}
       name={displayName}
-      fallbackLogoKey={otherParticipant?.logoKey || null}
+      fallbackLogoKey={
+        isDirectChat
+          ? otherParticipant?.logoKey || null
+          : conversation.logoKey || null
+      }
       size="small"
     />
   );

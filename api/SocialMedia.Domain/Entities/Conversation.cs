@@ -16,6 +16,8 @@ namespace SocialMedia.Domain.Entities
     {
         public Guid Id { get; set; }
         public string? Name { get; set; }
+        public string? LogoKey { get; set; }
+        public string? LogoContentType { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

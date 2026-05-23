@@ -3,12 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getUserId } from "@entities/user/helpers";
-import { chatApi } from "@entities/chat";
+import { chatApi, ConversationType } from "@entities/chat";
 import { useChatStore } from "@features/chat/model/store";
 import { ConversationList } from "@features/chat/ui/ConversationList";
 import { ChatWindow } from "@features/chat/ui/ChatWindow";
-import { UserSearch } from "@features/chat/ui/UserSearch";
-import { GroupChatCreation } from "@features/chat/ui/GroupChatCreation";
 import classes from "./chat.module.scss";
 
 export default function ChatPage() {
@@ -78,23 +76,25 @@ export default function ChatPage() {
     (c) => c.conversationId === activeConversationId,
   );
 
-  const isGroupChat =
-    activeConversation && activeConversation.participants.length > 1;
-  const otherParticipant = activeConversation?.participants[0];
+  const isDirectChat =
+    activeConversation?.type === ConversationType.Direct ||
+    activeConversation?.type === undefined;
+  const otherParticipant =
+    activeConversation?.participants.find((p) => p.userId !== userId) ||
+    activeConversation?.participants[0];
 
-  const chatTitle = isGroupChat
-    ? activeConversation.name ||
-      `Group (${activeConversation.participants.length + 1})`
-    : otherParticipant?.name || "Unknown User";
+  const chatTitle = isDirectChat
+    ? otherParticipant?.name || "Unknown User"
+    : activeConversation?.name ||
+      `Group (${activeConversation?.participants.length || 0})`;
 
   return (
     <div className={classes.chatPage}>
       <div className={classes.sidebar}>
-        <UserSearch />
-        <GroupChatCreation />
         <ConversationList
           conversations={conversations}
           activeConversationId={activeConversationId}
+          currentUserId={userId}
           onSelectConversation={handleSelectConversation}
           onLeaveConversation={handleLeaveConversation}
         />
@@ -108,13 +108,13 @@ export default function ChatPage() {
             currentUserId={userId}
             conversation={activeConversation}
             otherUser={
-              !isGroupChat && otherParticipant
+              isDirectChat && otherParticipant
                 ? {
                     id: otherParticipant.userId,
                     name: otherParticipant.name,
                     logoKey: otherParticipant.logoKey,
                   }
-                : isGroupChat
+                : !isDirectChat
                   ? {
                       id: "",
                       name: chatTitle,

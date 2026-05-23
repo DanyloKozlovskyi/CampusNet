@@ -10,6 +10,7 @@ import classes from "./ConversationAvatar.module.scss";
 interface ConversationAvatarProps {
   type: ConversationType;
   logoUrl: string | null;
+  logoKey?: string | null;
   name?: string | null;
   fallbackLogoKey?: string | null;
   size?: "small" | "large";
@@ -18,6 +19,7 @@ interface ConversationAvatarProps {
 export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
   type,
   logoUrl,
+  logoKey,
   name,
   fallbackLogoKey,
   size = "small",
@@ -26,7 +28,9 @@ export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
 
   if (type === ConversationType.Major) {
     return (
-      <div className={`${classes.avatar} ${classes.iconAvatar} ${classes.majorIcon} ${sizeClass}`}>
+      <div
+        className={`${classes.avatar} ${classes.iconAvatar} ${classes.majorIcon} ${sizeClass}`}
+      >
         <MenuBookIcon />
       </div>
     );
@@ -34,7 +38,9 @@ export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
 
   if (type === ConversationType.MajorYear) {
     return (
-      <div className={`${classes.avatar} ${classes.iconAvatar} ${classes.yearIcon} ${sizeClass}`}>
+      <div
+        className={`${classes.avatar} ${classes.iconAvatar} ${classes.yearIcon} ${sizeClass}`}
+      >
         <CalendarTodayIcon />
       </div>
     );
@@ -53,6 +59,16 @@ export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
     );
   }
 
+  if (type === ConversationType.Group && logoKey) {
+    return (
+      <UserLogo
+        className={`${classes.avatar} ${sizeClass}`}
+        logoKey={logoKey}
+        size={size === "large" ? 80 : 40}
+      />
+    );
+  }
+
   if (fallbackLogoKey !== undefined) {
     return (
       <UserLogo
@@ -64,7 +80,9 @@ export const ConversationAvatar: React.FC<ConversationAvatarProps> = ({
   }
 
   return (
-    <div className={`${classes.avatar} ${classes.iconAvatar} ${classes.defaultIcon} ${sizeClass}`}>
+    <div
+      className={`${classes.avatar} ${classes.iconAvatar} ${classes.defaultIcon} ${sizeClass}`}
+    >
       <PeopleIcon />
     </div>
   );

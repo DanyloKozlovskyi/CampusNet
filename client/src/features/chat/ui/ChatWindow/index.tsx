@@ -269,7 +269,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             type={conversation?.type ?? ConversationType.Direct}
             logoUrl={universityLogoUrl}
             name={conversation?.name}
-            fallbackLogoKey={otherUser?.logoKey || null}
+            fallbackLogoKey={
+              conversation?.type === ConversationType.Direct ||
+              conversation?.type === undefined
+                ? otherUser?.logoKey || null
+                : conversation?.logoKey || null
+            }
             size="small"
           />
 

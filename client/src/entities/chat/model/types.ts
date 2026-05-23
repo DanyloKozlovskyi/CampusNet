@@ -38,6 +38,8 @@ export interface Conversation {
   conversationId: string;
   name?: string;
   type?: ConversationType;
+  logoKey?: string;
+  logoContentType?: string;
   universityDomain?: string;
   facultyCode?: string;
   major?: string;
