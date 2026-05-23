@@ -1,3 +1,4 @@
+import axios from "axios";
 import api, { ENDPOINTS } from "@shared/api";
 import { StartUploadResponse, CompleteUploadResponse } from "./interfaces";
 
@@ -35,7 +36,7 @@ async function uploadVideoToR2(
   uploadUrl: string,
   contentType: string,
 ): Promise<void> {
-  await api.put(uploadUrl, file, {
+  await axios.put(uploadUrl, file, {
     headers: { "Content-Type": contentType },
   });
 }

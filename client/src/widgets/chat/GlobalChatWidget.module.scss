@@ -11,6 +11,7 @@
   &.collapsed {
     width: 60px;
     height: 60px;
+    overflow: visible;
   }
 
   &.list {
@@ -25,6 +26,7 @@
 }
 
 .toggleButton {
+  position: relative;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -37,6 +39,7 @@
   color: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: background-color 0.2s;
+  overflow: visible;
 
   &:hover {
     background-color: #0073e6;

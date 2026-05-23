@@ -6,7 +6,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useChatStore } from "@features/chat/model/store";
 import { ConversationList } from "@features/chat/ui/ConversationList";
 import { ChatWindow } from "@features/chat/ui/ChatWindow";
-import { ConversationType, isUniversityChatType } from "@entities/chat";
+import { ConversationType } from "@entities/chat";
 import classes from "./GlobalChatWidget.module.scss";
 
 interface GlobalChatWidgetProps {
