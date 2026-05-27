@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyUniversityEmail } from "@entities/university";
 import { saveTokens } from "@entities/auth/helpers";
+import { setCookie } from "@shared/api";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CancelIcon from "@mui/icons-material/Cancel";
 import styles from "./verify-university-email.module.scss";
 
 type VerificationStatus = "loading" | "success" | "error" | "expired";
@@ -61,7 +66,9 @@ export default function VerifyUniversityEmailPage() {
       <div className={styles.card}>
         {status === "loading" && (
           <>
-            <div className={styles.icon}>⏳</div>
+            <div className={styles.icon}>
+              <HourglassEmptyIcon sx={{ fontSize: 64 }} color="primary" />
+            </div>
             <h1 className={styles.title}>Verifying your email...</h1>
             <p className={styles.subtitle}>
               Please wait while we verify your university email.
@@ -71,7 +78,9 @@ export default function VerifyUniversityEmailPage() {
 
         {status === "success" && (
           <>
-            <div className={styles.iconSuccess}>✅</div>
+            <div className={styles.iconSuccess}>
+              <CheckCircleIcon sx={{ fontSize: 64 }} color="success" />
+            </div>
             <h1 className={styles.title}>Email Verified!</h1>
             <p className={styles.subtitle}>
               Your university email has been successfully verified. You now have
@@ -101,7 +110,9 @@ export default function VerifyUniversityEmailPage() {
 
         {status === "expired" && (
           <>
-            <div className={styles.iconError}>⏰</div>
+            <div className={styles.iconError}>
+              <AccessTimeIcon sx={{ fontSize: 64 }} color="error" />
+            </div>
             <h1 className={styles.title}>Link Expired</h1>
             <p className={styles.subtitle}>
               This verification link has expired. Please request a new
@@ -117,7 +128,9 @@ export default function VerifyUniversityEmailPage() {
 
         {status === "error" && (
           <>
-            <div className={styles.iconError}>❌</div>
+            <div className={styles.iconError}>
+              <CancelIcon sx={{ fontSize: 64 }} color="error" />
+            </div>
             <h1 className={styles.title}>Verification Failed</h1>
             <p className={styles.subtitle}>
               {errorMessage ||

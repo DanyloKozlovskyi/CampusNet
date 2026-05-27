@@ -32,6 +32,8 @@ import { useCurrentUser } from "@shared/lib/hooks/useCurrentUser";
 import SchoolIcon from "@mui/icons-material/School";
 import EditIcon from "@mui/icons-material/Edit";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import EmailIcon from "@mui/icons-material/Email";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SeparatorLayout from "../layout/separator-layout";
 import { useAccountStore } from "./useAccountStore";
 import classes from "./account.module.scss";
@@ -354,7 +356,9 @@ const Account = () => {
                   {/* Email verification status */}
                   {!isEmailVerified && (
                     <div className={classes.verificationBanner}>
-                      <div className={classes.verificationBannerIcon}>📧</div>
+                      <div className={classes.verificationBannerIcon}>
+                        <EmailIcon fontSize="medium" />
+                      </div>
                       <div className={classes.verificationBannerText}>
                         <strong>Email not verified</strong>
                         <span>
@@ -387,7 +391,8 @@ const Account = () => {
                   )}
                   {isEmailVerified && (
                     <div className={classes.verifiedBadge}>
-                      ✅ Email verified
+                      <CheckCircleIcon fontSize="small" style={{ marginRight: 6 }} />
+                      Email verified
                     </div>
                   )}
                   <div className={classes.uniCards}>

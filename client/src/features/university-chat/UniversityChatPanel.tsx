@@ -16,6 +16,7 @@ import {
 import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
 import { useCurrentUser } from "@shared/lib/hooks/useCurrentUser";
 import { useIntl } from "react-intl";
+import EmailIcon from "@mui/icons-material/Email";
 import classes from "./university-chat.module.scss";
 
 const UniversityChatPanel = () => {
@@ -71,7 +72,9 @@ const UniversityChatPanel = () => {
       <div className={classes.panel}>
         <div className={classes.panelTitle}>Community Chats</div>
         <div className={classes.verificationRequired}>
-          <div className={classes.verificationIcon}>📧</div>
+          <div className={classes.verificationIcon}>
+            <EmailIcon fontSize="large" color="action" />
+          </div>
           <div className={classes.verificationText}>
             Verify your university email to access community chats
           </div>

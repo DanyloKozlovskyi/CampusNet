@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import CloseIcon from "@mui/icons-material/Close";
+import EmailIcon from "@mui/icons-material/Email";
+import SchoolIcon from "@mui/icons-material/School";
 import {
   getUniversityDomain,
   getAllFaculties,
@@ -84,7 +86,9 @@ const VerifyEmailStep = ({
 
   return (
     <div className={classes.successSection}>
-      <div className={classes.successIcon}>📧</div>
+      <div className={classes.successIcon}>
+        <EmailIcon sx={{ fontSize: 48 }} color="primary" />
+      </div>
       <div className={classes.successTitle}>Verify your email</div>
       <div className={classes.successSubtitle}>
         To access university chats and features, please verify your university
@@ -580,7 +584,9 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
 
         {step === "success" && (
           <div className={classes.successSection}>
-            <div className={classes.successIcon}>🎓</div>
+            <div className={classes.successIcon}>
+              <SchoolIcon sx={{ fontSize: 48 }} color="primary" />
+            </div>
             <div className={classes.successTitle}>You&apos;re all set!</div>
             <div className={classes.successSubtitle}>
               {verificationEmailSent
