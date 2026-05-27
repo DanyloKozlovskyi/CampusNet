@@ -23,7 +23,12 @@ import {
 import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
 import { UniversityOnboardingModal } from "@features/university-onboarding";
 import { fetchImageWithFallbacks } from "@entities/image";
-import { updateInterests } from "@entities/university";
+import {
+  updateInterests,
+  sendUniversityVerificationEmail,
+  getUniversityEmailVerificationStatus,
+} from "@entities/university";
+import { useCurrentUser } from "@shared/lib/hooks/useCurrentUser";
 import SchoolIcon from "@mui/icons-material/School";
 import EditIcon from "@mui/icons-material/Edit";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
@@ -69,12 +74,41 @@ const Account = () => {
   const [isEditingInterests, setIsEditingInterests] = useState(false);
   const [customTagInput, setCustomTagInput] = useState("");
   const [isSavingInterests, setIsSavingInterests] = useState(false);
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const pollingRef = useRef(false);
+  const { universityEmailVerified } = useCurrentUser();
+  const [pollingVerified, setPollingVerified] = useState(false);
+  const isEmailVerified = universityEmailVerified || pollingVerified;
 
   const [isLoading, setIsLoading] = useState(false);
   const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
   const observer = useRef<IntersectionObserver | null>(null);
 
   const pageSize = 5;
+
+  useEffect(() => {
+    if (!verificationSent || isEmailVerified) return;
+
+    pollingRef.current = true;
+    const interval = setInterval(async () => {
+      try {
+        const status = await getUniversityEmailVerificationStatus();
+        if (status.universityEmailVerified) {
+          clearInterval(interval);
+          pollingRef.current = false;
+          setPollingVerified(true);
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+      pollingRef.current = false;
+    };
+  }, [verificationSent, isEmailVerified]);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -316,35 +350,52 @@ const Account = () => {
               </div>
 
               {universityName ? (
-                <div className={classes.uniCards}>
-                  <div className={classes.uniCard}>
-                    {uniLogoUrl ? (
-                      <img
-                        src={uniLogoUrl}
-                        alt={translatedUniName || universityName}
-                        className={classes.uniCardLogo}
-                      />
-                    ) : (
-                      <div className={classes.uniCardLogoPlaceholder}>
-                        <SchoolIcon
-                          style={{ fontSize: 20, color: "#7c8db0" }}
-                        />
+                <>
+                  {/* Email verification status */}
+                  {!isEmailVerified && (
+                    <div className={classes.verificationBanner}>
+                      <div className={classes.verificationBannerIcon}>📧</div>
+                      <div className={classes.verificationBannerText}>
+                        <strong>Email not verified</strong>
+                        <span>
+                          Verify your email to access university chats
+                        </span>
                       </div>
-                    )}
-                    <div className={classes.uniCardInfo}>
-                      <div className={classes.uniCardLabel}>University</div>
-                      <div className={classes.uniCardName}>
-                        {translatedUniName || universityName}
-                      </div>
+                      <button
+                        className={classes.verificationBannerBtn}
+                        onClick={async () => {
+                          setIsSendingVerification(true);
+                          try {
+                            await sendUniversityVerificationEmail();
+                            setVerificationSent(true);
+                          } catch (err) {
+                            console.error(err);
+                          } finally {
+                            setIsSendingVerification(false);
+                          }
+                        }}
+                        disabled={isSendingVerification || verificationSent}
+                        type="button"
+                      >
+                        {isSendingVerification
+                          ? "Sending..."
+                          : verificationSent
+                            ? "Email Sent!"
+                            : "Send Verification"}
+                      </button>
                     </div>
-                  </div>
-
-                  {facultyName && (
+                  )}
+                  {isEmailVerified && (
+                    <div className={classes.verifiedBadge}>
+                      ✅ Email verified
+                    </div>
+                  )}
+                  <div className={classes.uniCards}>
                     <div className={classes.uniCard}>
-                      {facultyLogoUrl ? (
+                      {uniLogoUrl ? (
                         <img
-                          src={facultyLogoUrl}
-                          alt={translatedFacultyName || facultyName}
+                          src={uniLogoUrl}
+                          alt={translatedUniName || universityName}
                           className={classes.uniCardLogo}
                         />
                       ) : (
@@ -355,14 +406,38 @@ const Account = () => {
                         </div>
                       )}
                       <div className={classes.uniCardInfo}>
-                        <div className={classes.uniCardLabel}>Faculty</div>
+                        <div className={classes.uniCardLabel}>University</div>
                         <div className={classes.uniCardName}>
-                          {translatedFacultyName || facultyName}
+                          {translatedUniName || universityName}
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
+
+                    {facultyName && (
+                      <div className={classes.uniCard}>
+                        {facultyLogoUrl ? (
+                          <img
+                            src={facultyLogoUrl}
+                            alt={translatedFacultyName || facultyName}
+                            className={classes.uniCardLogo}
+                          />
+                        ) : (
+                          <div className={classes.uniCardLogoPlaceholder}>
+                            <SchoolIcon
+                              style={{ fontSize: 20, color: "#7c8db0" }}
+                            />
+                          </div>
+                        )}
+                        <div className={classes.uniCardInfo}>
+                          <div className={classes.uniCardLabel}>Faculty</div>
+                          <div className={classes.uniCardName}>
+                            {translatedFacultyName || facultyName}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
                 <div className={classes.uniNotSet}>
                   Not configured yet. Click Edit to set up your university.

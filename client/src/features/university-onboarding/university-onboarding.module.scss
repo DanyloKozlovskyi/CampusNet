@@ -319,3 +319,39 @@
   background: #c7d2fe;
   cursor: not-allowed;
 }
+
+.emailInfo {
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: #f0f4ff;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #4338ca;
+}
+
+.errorMessage {
+  margin: 12px 0;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #dc2626;
+}
+
+.successMessage {
+  margin: 12px 0;
+  padding: 10px 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #16a34a;
+}
+
+.primaryBtn:disabled {
+  background: linear-gradient(135deg, #a5b4fc, #c4b5fd);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

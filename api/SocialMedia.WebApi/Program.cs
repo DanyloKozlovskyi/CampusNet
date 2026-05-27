@@ -32,6 +32,8 @@ using StackExchange.Redis;
 using SocialMedia.WebApi;
 using SocialMedia.Application.Chat;
 using SocialMedia.Application.Recommendation;
+using SocialMedia.Application.Email;
+using SocialMedia.Infrastructure.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -166,6 +168,9 @@ builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IUserFollowRepository, UserFollowRepository>();
 builder.Services.AddScoped<IUserFollowService, UserFollowService>();
+
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IImpressionTracker, ImpressionTracker>();
 
 builder.Services.AddScoped<SubscriptionGenerator>();

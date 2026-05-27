@@ -29,6 +29,7 @@ public class ApplicationUser : IdentityUser<Guid>
 	public int? YearOfStudy { get; set; }
 	public string? AcademicRole { get; set; } // "student", "lecturer", "ta", "alumni"
 	public bool IsUniversityVerified { get; set; } = false;
+	public bool UniversityEmailVerified { get; set; } = false;
 
 	// User interests for feed recommendations (stored as JSON array)
 	public List<string> Interests { get; set; } = new();

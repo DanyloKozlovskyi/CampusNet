@@ -6,6 +6,10 @@ export {
   getUniversityStats,
   getUniversityPosts,
   updateInterests,
+  sendUniversityVerificationEmail,
+  verifyUniversityEmail,
+  resendUniversityVerificationEmail,
+  getUniversityEmailVerificationStatus,
 } from "./api";
 export type {
   UniversityInfo,
@@ -13,3 +17,4 @@ export type {
   UniversityStats,
   UpdateUniversityInfoPayload,
 } from "./types";
+export type { EmailVerificationStatus } from "./api";

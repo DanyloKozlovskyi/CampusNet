@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useUniversityStore } from "@entities/university";
 import { fetchImageWithFallbacks } from "@entities/image";
 import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
+import { useCurrentUser } from "@shared/lib/hooks/useCurrentUser";
 import classes from "./university-mode.module.scss";
 
 const UniversityModeToggle = () => {
@@ -17,6 +18,7 @@ const UniversityModeToggle = () => {
     facultyCode,
     facultyName,
   } = useUniversityStore();
+  const { universityEmailVerified } = useCurrentUser();
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const { translateUniversity, translateFaculty } = useUniversityTranslation();
@@ -39,6 +41,9 @@ const UniversityModeToggle = () => {
   if (!universityDomain || universityDomain === "null") return null;
 
   const handleToggle = () => {
+    if (!universityEmailVerified && !isUniversityMode) {
+      return;
+    }
     setUniversityMode(!isUniversityMode);
   };
 
@@ -57,7 +62,9 @@ const UniversityModeToggle = () => {
         <div className={classes.title}>
           {translatedUniName || universityName || universityDomain}
         </div>
-        <div className={classes.subtitle}>University Mode</div>
+        <div className={classes.subtitle}>
+          {universityEmailVerified ? "University Mode" : "Email not verified"}
+        </div>
         {isUniversityMode && (
           <div className={classes.scopePills}>
             <button

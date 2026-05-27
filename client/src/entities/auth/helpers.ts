@@ -1,7 +1,12 @@
-import { AuthenticationResponse } from "./interfaces";
 import { setCookie } from "@shared/api";
 
-const saveTokens = ({ token, refreshToken }: AuthenticationResponse) => {
+const saveTokens = ({
+  token,
+  refreshToken,
+}: {
+  token: string;
+  refreshToken: string;
+}) => {
   setCookie("access_token", `Bearer ${token}`);
   setCookie("refresh_token", `Bearer ${refreshToken}`);
 };

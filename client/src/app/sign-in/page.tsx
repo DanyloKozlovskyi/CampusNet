@@ -16,7 +16,7 @@ const SignInPage = () => {
     email: "",
     password: "",
   });
-
+  const [loginError, setLoginError] = useState<string | null>(null);
   const { setUniversityInfo } = useUniversityStore();
 
   const handleChange = (field: string, value: string) => {
@@ -28,6 +28,7 @@ const SignInPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError(null);
     try {
       const response = await login(account);
       saveTokens(response);
@@ -57,6 +58,7 @@ const SignInPage = () => {
       router.push("/home");
     } catch (err) {
       console.error("Sign-in failed:", err);
+      setLoginError("Invalid email or password");
     }
   };
 
@@ -79,6 +81,9 @@ const SignInPage = () => {
         className={classes.input}
         required
       />
+      {loginError && (
+        <div className={classes.errorMessage}>{loginError}</div>
+      )}
       <Button type="submit" className={classes.button}>
         Sign In
       </Button>

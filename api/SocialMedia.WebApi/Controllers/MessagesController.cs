@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SocialMedia.Application.Chat;
 using SocialMedia.Application.Chat.Dtos;
+using SocialMedia.Domain.Entities.Identity;
 using System.Security.Claims;
 
 namespace SocialMedia.WebApi.Controllers;
@@ -12,10 +14,18 @@ namespace SocialMedia.WebApi.Controllers;
 public class MessagesController : ControllerBase
 {
 	private readonly IChatService _chatService;
+	private readonly UserManager<ApplicationUser> _userManager;
 
-	public MessagesController(IChatService chatService)
+	public MessagesController(IChatService chatService, UserManager<ApplicationUser> userManager)
 	{
 		_chatService = chatService;
+		_userManager = userManager;
+	}
+
+	private async Task<bool> IsUniversityEmailVerified(Guid userId)
+	{
+		var user = await _userManager.FindByIdAsync(userId.ToString());
+		return user?.UniversityEmailVerified ?? false;
 	}
 
 	[HttpGet("conversations")]
@@ -122,6 +132,11 @@ public class MessagesController : ControllerBase
 			return Unauthorized();
 		}
 
+		if (!await IsUniversityEmailVerified(currentUserId))
+		{
+			return Forbid("University email not verified");
+		}
+
 		var conversationId = await _chatService.JoinUniversityChat(currentUserId, request.UniversityDomain, request.UniversityName);
 		return Ok(new { ConversationId = conversationId });
 	}
@@ -133,6 +148,11 @@ public class MessagesController : ControllerBase
 		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
 		{
 			return Unauthorized();
+		}
+
+		if (!await IsUniversityEmailVerified(currentUserId))
+		{
+			return Forbid("University email not verified");
 		}
 
 		var conversationId = await _chatService.JoinFacultyChat(currentUserId, request.UniversityDomain, request.FacultyCode, request.FacultyName);
@@ -148,6 +168,11 @@ public class MessagesController : ControllerBase
 			return Unauthorized();
 		}
 
+		if (!await IsUniversityEmailVerified(currentUserId))
+		{
+			return Forbid("University email not verified");
+		}
+
 		var conversationId = await _chatService.JoinMajorChat(currentUserId, request.UniversityDomain, request.FacultyCode, request.MajorKey, request.Major);
 		return Ok(new { ConversationId = conversationId });
 	}
@@ -159,6 +184,11 @@ public class MessagesController : ControllerBase
 		if (currentUserIdClaim == null || !Guid.TryParse(currentUserIdClaim, out var currentUserId))
 		{
 			return Unauthorized();
+		}
+
+		if (!await IsUniversityEmailVerified(currentUserId))
+		{
+			return Forbid("University email not verified");
 		}
 
 		var conversationId = await _chatService.JoinMajorYearChat(currentUserId, request.UniversityDomain, request.FacultyCode, request.MajorKey, request.Major, request.YearOfStudy);

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using SocialMedia.Application.Identity;
 using SocialMedia.Application.Identity.Dtos;
 using SocialMedia.Application.Images;
+using SocialMedia.Application.Email;
 using SocialMedia.Domain.Entities.Identity;
 using System.Security.Claims;
 
@@ -22,9 +23,11 @@ namespace SocialMedia.WebApi.Controllers
 		private readonly IImageRepository _imageRepository;
 		private readonly IMapper mapper;
 		private readonly IUserFollowService _userFollowService;
+		private readonly IEmailService _emailService;
+		private readonly IConfiguration _configuration;
 
 		public AccountController(UserManager<ApplicationUser> userMng,
-			SignInManager<ApplicationUser> signInMng, RoleManager<ApplicationRole> roleMng, IJwtService jwtSvc, IMapper mapp, IImageRepository imageRepository, IUserFollowService userFollowService)
+			SignInManager<ApplicationUser> signInMng, RoleManager<ApplicationRole> roleMng, IJwtService jwtSvc, IMapper mapp, IImageRepository imageRepository, IUserFollowService userFollowService, IEmailService emailService, IConfiguration configuration)
 		{
 			_userManager = userMng;
 			_signInManager = signInMng;
@@ -33,6 +36,8 @@ namespace SocialMedia.WebApi.Controllers
 			mapper = mapp;
 			_imageRepository = imageRepository;
 			_userFollowService = userFollowService;
+			_emailService = emailService;
+			_configuration = configuration;
 		}
 
 		private Guid? GetUserId()
@@ -335,6 +340,9 @@ namespace SocialMedia.WebApi.Controllers
 			if (!result.Succeeded)
 				return BadRequest(result.Errors);
 
+			// Return new JWT token with updated claims
+			var authResponse = _jwtService.CreateJwtToken(user);
+
 			return Ok(new
 			{
 				universityDomain = user.UniversityDomain,
@@ -345,7 +353,10 @@ namespace SocialMedia.WebApi.Controllers
 				majorKey = user.MajorKey,
 				yearOfStudy = user.YearOfStudy,
 				academicRole = user.AcademicRole,
-				isUniversityVerified = user.IsUniversityVerified
+				isUniversityVerified = user.IsUniversityVerified,
+				universityEmailVerified = user.UniversityEmailVerified,
+				token = authResponse.Token,
+				refreshToken = authResponse.RefreshToken
 			});
 		}
 
@@ -461,6 +472,127 @@ namespace SocialMedia.WebApi.Controllers
 				return BadRequest(result.Errors);
 
 			return Ok(new { interests = user.Interests });
+		}
+
+		[HttpPost("[action]")]
+		[Authorize]
+		public async Task<IActionResult> SendUniversityVerificationEmail([FromQuery] string? universityName = null, [FromQuery] string? universityDomain = null)
+		{
+			var userId = GetUserId();
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+				return NotFound();
+
+			if (user.UniversityEmailVerified)
+				return BadRequest("Email already verified");
+
+			var domainToUse = user.UniversityDomain;
+			var nameToUse = user.UniversityName;
+
+			var needsUpdate = false;
+			if (string.IsNullOrEmpty(domainToUse) && !string.IsNullOrEmpty(universityDomain))
+			{
+				user.UniversityDomain = universityDomain;
+				domainToUse = universityDomain;
+				needsUpdate = true;
+			}
+			if (string.IsNullOrEmpty(nameToUse) && !string.IsNullOrEmpty(universityName))
+			{
+				user.UniversityName = universityName;
+				nameToUse = universityName;
+				needsUpdate = true;
+			}
+
+			if (needsUpdate)
+			{
+				user.IsUniversityVerified = true;
+				await _userManager.UpdateAsync(user);
+			}
+
+			if (string.IsNullOrEmpty(domainToUse) || string.IsNullOrEmpty(nameToUse))
+				return BadRequest("University info not set");
+
+			var token = _jwtService.CreateEmailVerificationToken(userId.Value);
+
+			var frontendUrl = _configuration["FrontendUrl"];
+			var verificationUrl = $"{frontendUrl}/verify-university-email?token={token}";
+
+			try
+			{
+				await _emailService.SendUniversityVerificationEmailAsync(
+					user.Email!,
+					verificationUrl,
+					nameToUse
+				);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed to send verification email: {ex.Message}");
+				return StatusCode(500, "Failed to send verification email");
+			}
+
+			return Ok(new { message = "Verification email sent", email = user.Email });
+		}
+
+		[HttpGet("[action]")]
+		[AllowAnonymous]
+		public async Task<IActionResult> VerifyUniversityEmail([FromQuery] string token)
+		{
+			if (string.IsNullOrEmpty(token))
+				return BadRequest("Token is required");
+
+			// Validate JWT token
+			var userId = _jwtService.ValidateEmailVerificationToken(token);
+			if (userId == null)
+				return BadRequest("Invalid or expired token");
+
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+				return BadRequest("User not found");
+
+			if (user.UniversityEmailVerified)
+				return Ok(new { message = "Email already verified", universityEmailVerified = true });
+
+			user.UniversityEmailVerified = true;
+
+			var result = await _userManager.UpdateAsync(user);
+			if (!result.Succeeded)
+				return BadRequest(result.Errors);
+
+			// Return new JWT token with updated claim
+			var authResponse = _jwtService.CreateJwtToken(user);
+
+			return Ok(new { 
+				message = "Email verified successfully", 
+				universityEmailVerified = true,
+				token = authResponse.Token,
+				refreshToken = authResponse.RefreshToken
+			});
+		}
+
+		[HttpPost("[action]")]
+		[Authorize]
+		public async Task<IActionResult> ResendUniversityVerificationEmail()
+		{
+			return await SendUniversityVerificationEmail();
+		}
+
+		[HttpGet("[action]")]
+		[Authorize]
+		public async Task<IActionResult> GetUniversityEmailVerificationStatus()
+		{
+			var userId = GetUserId();
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+				return NotFound();
+
+			return Ok(new
+			{
+				universityEmailVerified = user.UniversityEmailVerified,
+				universityDomain = user.UniversityDomain,
+				universityName = user.UniversityName,
+				email = user.Email
+			});
 		}
 	}
 }

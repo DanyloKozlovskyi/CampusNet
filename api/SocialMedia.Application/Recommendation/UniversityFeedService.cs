@@ -10,6 +10,7 @@ public class UniversityFeedService : IUniversityFeedService
 	private readonly IBlogRepository _blogRepository;
 	private readonly UserManager<ApplicationUser> _userManager;
 	private readonly IUniversityPostRankingCache _cache;
+	private readonly IImpressionTracker _impressionTracker;
 
 	private const double FACULTY_RATIO = 0.40;
 	private const double INTEREST_RATIO = 0.40;
@@ -17,15 +18,18 @@ public class UniversityFeedService : IUniversityFeedService
 
 	private const float LIKE_WEIGHT = 0.01f;
 	private const float COMMENT_WEIGHT = 0.1f;
+	private const double SCORE_JITTER = 0.05;
 
 	public UniversityFeedService(
 		IBlogRepository blogRepository,
 		UserManager<ApplicationUser> userManager,
-		IUniversityPostRankingCache cache)
+		IUniversityPostRankingCache cache,
+		IImpressionTracker impressionTracker)
 	{
 		_blogRepository = blogRepository;
 		_userManager = userManager;
 		_cache = cache;
+		_impressionTracker = impressionTracker;
 	}
 
 	public async Task<UniversityFeedResult> GetUniversityFeedAsync(Guid userId, int page = 1, int pageSize = 30)
@@ -50,7 +54,8 @@ public class UniversityFeedService : IUniversityFeedService
 		int interestLimit = (int)Math.Ceiling(pageSize * INTEREST_RATIO);
 		int generalLimit = (int)Math.Ceiling(pageSize * GENERAL_RATIO);
 
-		var seenPostIds = new HashSet<Guid>();
+		var impressionIds = await _impressionTracker.GetImpressionsAsync(userId);
+		var seenPostIds = new HashSet<Guid>(impressionIds);
 		var allPosts = new List<PostResponseModel>();
 
 		// Batch 1: Faculty Posts (~40%)
@@ -79,11 +84,17 @@ public class UniversityFeedService : IUniversityFeedService
 		allPosts.AddRange(generalPosts);
 
 		// Sort combined results by hotness score (likes + comments weighted) then by recency
-		var sortedPosts = SortByHotness(allPosts);
+		var sortedPosts = SortByHotnessWithJitter(allPosts);
 
 		// Apply pagination
 		var skip = (page - 1) * pageSize;
 		var pagedPosts = sortedPosts.Skip(skip).Take(pageSize).ToList();
+
+		// Log impressions for the returned posts
+		if (pagedPosts.Count > 0)
+		{
+			await _impressionTracker.LogImpressionsAsync(userId, pagedPosts.Select(p => p.Id));
+		}
 
 		return new UniversityFeedResult
 		{
@@ -157,20 +168,27 @@ public class UniversityFeedService : IUniversityFeedService
 		return posts.OrderBy(p => postIds.IndexOf(p.Id)).ToList();
 	}
 
-	private List<PostResponseModel> SortByHotness(List<PostResponseModel> posts)
+	private List<PostResponseModel> SortByHotnessWithJitter(List<PostResponseModel> posts)
 	{
-		// Calculate hotness score: weighted engagement + time decay
+		// Calculate hotness score: weighted engagement + time decay + jitter
 		var now = DateTime.UtcNow;
+		var random = Random.Shared;
 
 		return posts
 			.Select(p => new
 			{
 				Post = p,
-				HotnessScore = CalculateHotnessScore(p, now)
+				HotnessScore = CalculateHotnessScore(p, now) * ApplyJitter(random)
 			})
 			.OrderByDescending(x => x.HotnessScore)
 			.Select(x => x.Post)
 			.ToList();
+	}
+
+	private static double ApplyJitter(Random random)
+	{
+		// ±5% jitter (smaller than global feed's ±10%)
+		return 1.0 + (random.NextDouble() * SCORE_JITTER * 2 - SCORE_JITTER);
 	}
 
 	private double CalculateHotnessScore(PostResponseModel post, DateTime now)

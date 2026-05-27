@@ -34,7 +34,8 @@ namespace SocialMedia.Application.Identity
 					new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.Now.ToUnixTimeSeconds().ToString()),
 					new Claim(ClaimTypes.NameIdentifier, user.Email),
 					new Claim(ClaimTypes.Name, user.UserName),
-					new Claim(ClaimTypes.Email, user.Email)
+					new Claim(ClaimTypes.Email, user.Email),
+					new Claim("universityEmailVerified", user.UniversityEmailVerified.ToString().ToLower())
 				};
 
 			SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
@@ -112,6 +113,78 @@ namespace SocialMedia.Application.Identity
 			}
 
 			return principal;
+		}
+
+		public string CreateEmailVerificationToken(Guid userId)
+		{
+			DateTime expiration = DateTime.UtcNow.AddHours(24);
+
+			Claim[] claims = new Claim[]
+			{
+				new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+				new Claim("purpose", "email-verification"),
+				new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+			};
+
+			SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+			SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+			JwtSecurityToken tokenGenerator = new JwtSecurityToken(
+				configuration["JWT:Issuer"],
+				configuration["JWT:Audience"],
+				claims,
+				expires: expiration,
+				signingCredentials: signingCredentials
+			);
+
+			JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+			return tokenHandler.WriteToken(tokenGenerator);
+		}
+
+		public Guid? ValidateEmailVerificationToken(string token)
+		{
+			try
+			{
+				var tokenValidationParameters = new TokenValidationParameters()
+				{
+					ValidateActor = true,
+					ValidAudience = configuration["Jwt:Audience"],
+					ValidateIssuer = true,
+					ValidIssuer = configuration["Jwt:Issuer"],
+					ValidateIssuerSigningKey = true,
+					IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
+					ValidateLifetime = true,
+				};
+
+				JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+				ClaimsPrincipal principal = jwtSecurityTokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+
+				if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+					!jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return null;
+				}
+
+				var purposeClaim = principal.FindFirst("purpose")?.Value;
+				if (purposeClaim != "email-verification")
+				{
+					return null;
+				}
+
+				var userIdClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
+					?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+				
+				if (Guid.TryParse(userIdClaim, out var userId))
+				{
+					return userId;
+				}
+
+				return null;
+			}
+			catch
+			{
+				return null;
+			}
 		}
 	}
 }

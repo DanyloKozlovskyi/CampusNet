@@ -7,4 +7,6 @@ public interface IJwtService
 {
 	AuthenticationResponse CreateJwtToken(ApplicationUser user);
 	ClaimsPrincipal? GetPrincipalFromJwtToken(string? token);
+	string CreateEmailVerificationToken(Guid userId);
+	Guid? ValidateEmailVerificationToken(string token);
 }

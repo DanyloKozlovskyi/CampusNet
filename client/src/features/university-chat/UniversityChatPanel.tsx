@@ -14,6 +14,7 @@ import {
   getFacultyLogoBasePath,
 } from "@shared/lib/universities";
 import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
+import { useCurrentUser } from "@shared/lib/hooks/useCurrentUser";
 import { useIntl } from "react-intl";
 import classes from "./university-chat.module.scss";
 
@@ -29,6 +30,7 @@ const UniversityChatPanel = () => {
     majorKey,
     yearOfStudy,
   } = useUniversityStore();
+  const { universityEmailVerified } = useCurrentUser();
 
   const [uniLogoUrl, setUniLogoUrl] = useState<string | null>(null);
   const [facultyLogoUrl, setFacultyLogoUrl] = useState<string | null>(null);
@@ -63,6 +65,20 @@ const UniversityChatPanel = () => {
   }, [universityDomain, facultyCode]);
 
   if (!isUniversityMode || !universityDomain) return null;
+
+  if (!universityEmailVerified) {
+    return (
+      <div className={classes.panel}>
+        <div className={classes.panelTitle}>Community Chats</div>
+        <div className={classes.verificationRequired}>
+          <div className={classes.verificationIcon}>📧</div>
+          <div className={classes.verificationText}>
+            Verify your university email to access community chats
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleJoinUniChat = async () => {
     try {

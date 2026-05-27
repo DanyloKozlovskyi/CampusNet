@@ -6,6 +6,7 @@ interface JwtPayload {
   sub: string;
   unique_name: string;
   email: string;
+  universityEmailVerified?: string;
 }
 
 export function getCurrentUserId(): string | null {
@@ -24,16 +25,19 @@ export function getCurrentUserId(): string | null {
 export function useCurrentUser() {
   const token = getCookie("access_token");
 
-  const userId = useMemo(() => {
-    if (!token) return null;
+  const { userId, universityEmailVerified } = useMemo(() => {
+    if (!token) return { userId: null, universityEmailVerified: false };
     const jwt = token.startsWith("Bearer ") ? token.slice(7) : token;
     try {
       const decoded = jwtDecode<JwtPayload>(jwt);
-      return decoded.sub ?? null;
+      return {
+        userId: decoded.sub ?? null,
+        universityEmailVerified: decoded.universityEmailVerified === "true",
+      };
     } catch {
-      return null;
+      return { userId: null, universityEmailVerified: false };
     }
   }, [token]);
 
-  return { userId };
+  return { userId, universityEmailVerified };
 }

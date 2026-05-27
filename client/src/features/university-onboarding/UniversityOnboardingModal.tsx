@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import {
   getUniversityDomain,
@@ -15,6 +15,8 @@ import {
   useUniversityStore,
   updateUniversityInfo,
   updateInterests,
+  sendUniversityVerificationEmail,
+  getUniversityEmailVerificationStatus,
 } from "@entities/university";
 import { fetchImageWithFallbacks } from "@entities/image";
 import { chatApi } from "@entities/chat";
@@ -26,7 +28,121 @@ interface Props {
   forceShow?: boolean;
 }
 
-type Step = "confirm" | "faculty" | "details" | "success";
+type Step = "confirm" | "faculty" | "details" | "verify-email" | "success";
+
+interface VerifyEmailStepProps {
+  email: string;
+  emailError: string | null;
+  setEmailError: (error: string | null) => void;
+  verificationEmailSent: boolean;
+  setVerificationEmailSent: (sent: boolean) => void;
+  isSubmitting: boolean;
+  setIsSubmitting: (submitting: boolean) => void;
+  setStep: (step: Step) => void;
+  setOnboardingDismissed: (dismissed: boolean) => void;
+  universityDomain?: string | null;
+  universityName?: string | null;
+}
+
+const VerifyEmailStep = ({
+  email,
+  emailError,
+  setEmailError,
+  verificationEmailSent,
+  setVerificationEmailSent,
+  isSubmitting,
+  setIsSubmitting,
+  setStep,
+  setOnboardingDismissed,
+  universityDomain,
+  universityName,
+}: VerifyEmailStepProps) => {
+  const pollingRef = useRef(false);
+
+  useEffect(() => {
+    if (!verificationEmailSent) return;
+
+    pollingRef.current = true;
+    const interval = setInterval(async () => {
+      try {
+        const status = await getUniversityEmailVerificationStatus();
+        if (status.universityEmailVerified) {
+          clearInterval(interval);
+          pollingRef.current = false;
+          setStep("faculty");
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+      pollingRef.current = false;
+    };
+  }, [verificationEmailSent, setStep]);
+
+  return (
+    <div className={classes.successSection}>
+      <div className={classes.successIcon}>📧</div>
+      <div className={classes.successTitle}>Verify your email</div>
+      <div className={classes.successSubtitle}>
+        To access university chats and features, please verify your university
+        email address.
+      </div>
+      <div className={classes.emailInfo}>
+        <strong>{email}</strong>
+      </div>
+      {emailError && <div className={classes.errorMessage}>{emailError}</div>}
+      {verificationEmailSent ? (
+        <div className={classes.successMessage}>
+          Verification email sent! Check your inbox.
+
+        </div>
+      ) : null}
+      <div className={classes.actions} style={{ marginTop: 20 }}>
+        <button
+          className={classes.primaryBtn}
+          onClick={async () => {
+            setEmailError(null);
+            setIsSubmitting(true);
+            try {
+              await sendUniversityVerificationEmail(
+                universityDomain || undefined,
+                universityName || undefined
+              );
+              setVerificationEmailSent(true);
+            } catch (err) {
+              setEmailError(
+                "Failed to send verification email. Please try again.",
+              );
+              console.error(err);
+            } finally {
+              setIsSubmitting(false);
+            }
+          }}
+          disabled={isSubmitting || verificationEmailSent}
+          type="button"
+        >
+          {isSubmitting
+            ? "Sending..."
+            : verificationEmailSent
+              ? "Email Sent"
+              : "Send Verification Email"}
+        </button>
+        <button
+          className={classes.secondaryBtn}
+          onClick={() => {
+            setStep("faculty");
+          }}
+          type="button"
+        >
+          Skip for now
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
   const {
@@ -54,6 +170,10 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [interests, setInterests] = useState<string[]>([]);
   const [customTagInput, setCustomTagInput] = useState<string>("");
+  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailAlreadyVerified, setEmailAlreadyVerified] = useState(false);
+  const totalSteps = emailAlreadyVerified ? 3 : 4;
 
   // Don't show if: no university match, already onboarded, or already dismissed
   const shouldShow =
@@ -82,7 +202,7 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
       if (fLogoBaseUrl) {
         fetchImageWithFallbacks(fLogoBaseUrl, ["png", "svg", "jpg", "jpeg"])
           .then((url) => setFacultyLogos((prev) => ({ ...prev, [code]: url })))
-          .catch(() => {});
+          .catch(() => { });
       }
     });
   }, [step, uniDomain]);
@@ -92,7 +212,20 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
     onComplete();
   }, [setOnboardingDismissed, onComplete]);
 
-  const handleConfirmYes = () => setStep("faculty");
+  const handleConfirmYes = async () => {
+    try {
+      const status = await getUniversityEmailVerificationStatus();
+      if (status.universityEmailVerified) {
+        setEmailAlreadyVerified(true);
+        setStep("faculty");
+      } else {
+        setEmailAlreadyVerified(false);
+        setStep("verify-email");
+      }
+    } catch {
+      setStep("verify-email");
+    }
+  };
 
   const handleSelectFaculty = (code: string) => {
     setSelectedFacultyCode(code);
@@ -149,7 +282,6 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
         academicRole,
       });
 
-      // Save interests
       await updateInterests(interests);
 
       try {
@@ -191,7 +323,6 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
         yearOfStudy,
       });
 
-      setOnboardingDismissed(true);
       setStep("success");
     } catch (err) {
       console.error("Failed to save university info:", err);
@@ -210,9 +341,10 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
         {/* Header */}
         <div className={classes.header}>
           <span className={classes.stepLabel}>
-            {step === "confirm" && "Step 1 of 3"}
-            {step === "faculty" && "Step 2 of 3"}
-            {step === "details" && "Step 3 of 3"}
+            {step === "confirm" && `Step 1 of ${totalSteps}`}
+            {step === "verify-email" && `Step 2 of ${totalSteps}`}
+            {step === "faculty" && `Step ${emailAlreadyVerified ? 2 : 3} of ${totalSteps}`}
+            {step === "details" && `Step ${emailAlreadyVerified ? 3 : 4} of ${totalSteps}`}
             {step === "success" && "Done!"}
           </span>
           <button
@@ -224,7 +356,6 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
           </button>
         </div>
 
-        {/* ── Step 1: Confirm university ── */}
         {step === "confirm" && university && (
           <>
             <div className={classes.logoSection}>
@@ -263,7 +394,22 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
           </>
         )}
 
-        {/* ── Step 2: Pick faculty ── */}
+        {step === "verify-email" && (
+          <VerifyEmailStep
+            email={email}
+            emailError={emailError}
+            setEmailError={setEmailError}
+            verificationEmailSent={verificationEmailSent}
+            setVerificationEmailSent={setVerificationEmailSent}
+            isSubmitting={isSubmitting}
+            setIsSubmitting={setIsSubmitting}
+            setStep={setStep}
+            setOnboardingDismissed={setOnboardingDismissed}
+            universityDomain={uniDomain}
+            universityName={university?.name}
+          />
+        )}
+
         {step === "faculty" && (
           <>
             <div className={classes.logoSection}>
@@ -301,7 +447,6 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
           </>
         )}
 
-        {/* ── Step 3: Details ── */}
         {step === "details" && selectedFaculty && (
           <>
             <div className={classes.logoSection}>
@@ -431,14 +576,16 @@ const UniversityOnboardingModal = ({ email, onComplete, forceShow }: Props) => {
           </>
         )}
 
-        {/* ── Success ── */}
+
+
         {step === "success" && (
           <div className={classes.successSection}>
             <div className={classes.successIcon}>🎓</div>
             <div className={classes.successTitle}>You&apos;re all set!</div>
             <div className={classes.successSubtitle}>
-              You can now switch to University Mode to see posts from your
-              classmates and join faculty chats.
+              {verificationEmailSent
+                ? "Check your email to complete verification. University features will be available after you verify."
+                : "You can now switch to University Mode to see posts from your classmates and join faculty chats."}
             </div>
             <div className={classes.actions} style={{ marginTop: 20 }}>
               <button
