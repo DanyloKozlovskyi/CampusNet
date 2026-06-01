@@ -1087,3 +1087,57 @@ export function getFacultyLogoBasePath(
   if (!faculty) return "";
   return `${BLOB_BASE_PATH}/${universityDomain}/${facultyCode}/logo`;
 }
+
+// Major abbreviations mapping
+const MAJOR_ABBREVIATIONS: Record<string, string> = {
+  "major.computer-science": "CS",
+  "major.software-engineering": "SE",
+  "major.cybersecurity": "CB",
+  "major.system-analysis": "SA",
+  "major.artificial-intelligence": "AI",
+  "major.electronics": "EL",
+  "major.micro-nanosystems": "MN",
+  "major.telecommunications": "TC",
+  "major.management": "MG",
+  "major.economics": "E",
+  "major.marketing": "MK",
+  "major.finance": "FN",
+  "major.biology": "BI",
+  "major.ecology": "EC",
+  "major.geography": "GE",
+  "major.tourism": "TR",
+  "major.earth-sciences": "ES",
+  "major.geology": "GL",
+  "major.journalism": "JR",
+  "major.philology": "PH",
+  "major.history": "HI",
+  "major.philosophy": "PL",
+  "major.psychology": "PS",
+  "major.sociology": "SO",
+  "major.political-science": "PO",
+  "major.law": "LW",
+  "major.international-relations": "IR",
+  "major.physics": "PY",
+  "major.mathematics": "MA",
+  "major.chemistry": "CH",
+  "major.applied-mathematics": "AM",
+  "major.data-science": "DS",
+};
+
+export function getMajorAbbreviation(
+  majorKey: string | null | undefined,
+): string | null {
+  if (!majorKey) return null;
+  return MAJOR_ABBREVIATIONS[majorKey] || null;
+}
+
+export function getMajorWithYear(
+  majorKey: string | null | undefined,
+  yearOfStudy: number | null | undefined,
+): { major: string | null; majorYear: string | null } {
+  const abbr = getMajorAbbreviation(majorKey);
+  if (!abbr) return { major: null, majorYear: null };
+
+  const majorYear = yearOfStudy ? `${abbr}${yearOfStudy}` : null;
+  return { major: abbr, majorYear };
+}

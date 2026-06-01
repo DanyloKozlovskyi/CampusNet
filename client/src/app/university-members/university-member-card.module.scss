@@ -1,0 +1,165 @@
+.card {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  border-bottom: 1px solid #e6ecf0;
+  background-color: #ffffff;
+  color: #0f1419;
+  font-family: Arial, sans-serif;
+  transition: background-color 0.3s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--light-gray, #f7f9f9);
+  }
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1d1d1f;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.roleBadge {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1d9bf0;
+  background-color: #e8f5fd;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.majorChip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7c3aed;
+  background-color: #ede9fe;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.majorYearChip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+  background-color: #d1fae5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.facultyLogo {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.facultyTooltip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+}
+
+.facultyTooltipLogo {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.messageBtn {
+  background-color: transparent;
+  border: 1px solid #1976d2;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1976d2;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #e3f2fd;
+  }
+
+  svg {
+    font-size: 18px;
+  }
+}
+
+.followButton {
+  background-color: #1d9bf0;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: start;
+  transition: all 0.2s;
+  width: 100px;
+  font-size: 14px;
+
+  &:hover {
+    background-color: #1a8cd8;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.following {
+    background-color: transparent;
+    color: #0f1419;
+    border: 1px solid #cfd9de;
+
+    &:hover {
+      border-color: #f4212e;
+      color: #f4212e;
+      background-color: rgba(244, 33, 46, 0.1);
+    }
+  }
+}

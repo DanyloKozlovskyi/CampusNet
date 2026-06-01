@@ -45,7 +45,10 @@ public static class BlogPostExtension
 				LogoKey = post.User.LogoKey,
 				Id = post.UserId,
 				UniversityDomain = post.User.UniversityDomain,
-				FacultyCode = post.User.FacultyCode
+				FacultyCode = post.User.FacultyCode,
+				Major = post.User.Major,
+				MajorKey = post.User.MajorKey,
+				YearOfStudy = post.User.YearOfStudy
 			} : null,
 			LikeCount = post.Likes != null ? post.Likes.Count(x => x.IsLiked) : 0,
 			Comments = null,

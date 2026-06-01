@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import PeopleIcon from "@mui/icons-material/People";
 import { useUniversityStore } from "@entities/university";
 import { fetchImageWithFallbacks } from "@entities/image";
 import { useUniversityTranslation } from "@shared/lib/universities/useUniversityTranslation";
@@ -8,6 +10,7 @@ import { useCurrentUser } from "@shared/lib/hooks/useCurrentUser";
 import classes from "./university-mode.module.scss";
 
 const UniversityModeToggle = () => {
+  const router = useRouter();
   const {
     isUniversityMode,
     setUniversityMode,
@@ -19,6 +22,10 @@ const UniversityModeToggle = () => {
     facultyName,
   } = useUniversityStore();
   const { universityEmailVerified } = useCurrentUser();
+
+  const handleViewMembers = () => {
+    router.push("/university-members");
+  };
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const { translateUniversity, translateFaculty } = useUniversityTranslation();
@@ -87,6 +94,14 @@ const UniversityModeToggle = () => {
                 ?.split(" ")
                 .slice(0, 2)
                 .join(" ") || "Faculty"}
+            </button>
+            <button
+              className={classes.membersBtn}
+              onClick={handleViewMembers}
+              type="button"
+              title="View Members"
+            >
+              <PeopleIcon className={classes.membersIcon} />
             </button>
           </div>
         )}

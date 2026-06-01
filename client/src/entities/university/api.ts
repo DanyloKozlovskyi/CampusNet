@@ -34,12 +34,16 @@ export async function clearUniversityInfo(): Promise<string> {
 export async function getUniversityPeers(
   universityDomain?: string,
   facultyCode?: string,
+  majorKey?: string,
+  yearOfStudy?: number,
   page: number = 1,
   pageSize: number = 20,
 ): Promise<UniversityPeer[]> {
   const params = new URLSearchParams();
   if (universityDomain) params.set("universityDomain", universityDomain);
   if (facultyCode) params.set("facultyCode", facultyCode);
+  if (majorKey) params.set("majorKey", majorKey);
+  if (yearOfStudy) params.set("yearOfStudy", String(yearOfStudy));
   params.set("page", String(page));
   params.set("pageSize", String(pageSize));
 
@@ -88,7 +92,7 @@ export interface EmailVerificationStatus {
 
 export async function sendUniversityVerificationEmail(
   universityDomain?: string,
-  universityName?: string
+  universityName?: string,
 ): Promise<{
   message: string;
   email: string;

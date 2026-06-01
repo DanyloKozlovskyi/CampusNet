@@ -388,7 +388,7 @@ namespace SocialMedia.WebApi.Controllers
 
 		[HttpGet("[action]")]
 		[Authorize]
-		public async Task<IActionResult> GetUniversityPeers([FromQuery] string? universityDomain = null, [FromQuery] string? facultyCode = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+		public async Task<IActionResult> GetUniversityPeers([FromQuery] string? universityDomain = null, [FromQuery] string? facultyCode = null, [FromQuery] string? majorKey = null, [FromQuery] int? yearOfStudy = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
 		{
 			var userId = GetUserId();
 			var currentUser = await _userManager.FindByIdAsync(userId.ToString());
@@ -405,6 +405,12 @@ namespace SocialMedia.WebApi.Controllers
 			if (!string.IsNullOrEmpty(facultyCode))
 				query = query.Where(u => u.FacultyCode == facultyCode);
 
+			if (!string.IsNullOrEmpty(majorKey))
+				query = query.Where(u => u.MajorKey == majorKey);
+
+			if (yearOfStudy.HasValue)
+				query = query.Where(u => u.YearOfStudy == yearOfStudy.Value);
+
 			var peers = await query
 				.OrderByDescending(u => u.Posts.Count())
 				.Skip((page - 1) * pageSize)
@@ -419,6 +425,7 @@ namespace SocialMedia.WebApi.Controllers
 					facultyCode = u.FacultyCode,
 					facultyName = u.FacultyName,
 					major = u.Major,
+					majorKey = u.MajorKey,
 					yearOfStudy = u.YearOfStudy,
 					academicRole = u.AcademicRole
 				})

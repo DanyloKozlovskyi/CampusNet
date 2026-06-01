@@ -71,16 +71,54 @@
 }
 
 .affiliationLogo {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   border-radius: 4px;
   opacity: 0.85;
   transition: opacity 0.2s;
+  cursor: pointer;
 
   &:hover {
     opacity: 1;
   }
+}
+
+.logoTooltip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+}
+
+.tooltipLogo {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.majorChip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7c3aed;
+  background-color: #ede9fe;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.majorYearChip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+  background-color: #d1fae5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
 }
 
 .userLogo {
