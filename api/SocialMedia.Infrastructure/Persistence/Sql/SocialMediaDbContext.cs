@@ -15,6 +15,7 @@ namespace SocialMedia.Infrastructure.Persistence.Sql
 		public DbSet<Conversation> Conversations { get; set; }
 		public DbSet<ConversationParticipant> ConversationParticipants { get; set; }
 		public DbSet<UserFollow> UserFollows { get; set; }
+		public DbSet<Report> Reports { get; set; }
 		
 		public SocialMediaDbContext(DbContextOptions<SocialMediaDbContext> options) : base(options)
 		{
@@ -35,6 +36,7 @@ namespace SocialMedia.Infrastructure.Persistence.Sql
 			modelBuilder.ApplyConfiguration(new ConversationConfiguration());
 			modelBuilder.ApplyConfiguration(new ConversationParticipantConfiguration());
 			modelBuilder.ApplyConfiguration(new UserFollowConfiguration());
+			modelBuilder.ApplyConfiguration(new ReportConfiguration());
 		}
 	}
 }

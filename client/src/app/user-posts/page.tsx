@@ -23,10 +23,14 @@ import BlogPost from "@core-components/blog-post";
 import Loader from "@shared/ui/loader";
 import NoResultsFound from "@shared/ui/no-results-found";
 import { fetchUserPosts } from "@entities/blog-post/helpers";
+import { ReportUserModal } from "@features/report-user";
+import ReportIcon from "@mui/icons-material/Report";
+import { useIntl } from "react-intl";
 import { useUserPostsStore } from "./useUserPostsStore";
 import classes from "./user-posts.module.scss";
 
 const UserPosts = () => {
+  const intl = useIntl();
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get("id") ?? "";
@@ -34,6 +38,7 @@ const UserPosts = () => {
   const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const isLoading = useUserPostsStore((state) => state.isLoading);
   const posts = useUserPostsStore(
@@ -185,11 +190,13 @@ const UserPosts = () => {
     [isLoading, postsHasMore, loadMore],
   );
 
+  console.log('followStatus1', !isCurrentUser && !!followStatus)
+
   return (
     <SeparatorLayout>
       <div style={{ height: "100%" }}>
         <PageHeader title="Posts" onBack={() => popView()} />
-        {logoKey != "" && (
+        { (
           <div className={classes.accountHeader}>
             <UserLogo className={classes.userLogo} logoKey={logoKey} />
             <div className={classes.userName}>{name}</div>
@@ -210,18 +217,36 @@ const UserPosts = () => {
                 </div>
               </div>
             )}
-            {!isCurrentUser && followStatus && (
-              <button
-                className={`${classes.followButton} ${followStatus.isFollowing ? classes.following : ""}`}
-                onClick={handleFollow}
-                disabled={isFollowLoading}
-                type="button"
-              >
-                {followStatus.isFollowing ? "Following" : "Follow"}
-              </button>
+            {!isCurrentUser && !!followStatus && (
+              <div className={classes.actionButtons}>
+                <button
+                  className={`${classes.followButton} ${followStatus.isFollowing ? classes.following : ""}`}
+                  onClick={handleFollow}
+                  disabled={isFollowLoading}
+                  type="button"
+                >
+                  {followStatus.isFollowing 
+                    ? intl.formatMessage({ id: "profile.following" }) 
+                    : intl.formatMessage({ id: "profile.follow" })}
+                </button>
+                <button
+                  className={classes.reportButton}
+                  onClick={() => setIsReportModalOpen(true)}
+                  type="button"
+                  title={intl.formatMessage({ id: "profile.report-user" })}
+                >
+                  <ReportIcon fontSize="small" />
+                </button>
+              </div>
             )}
           </div>
         )}
+        <ReportUserModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          reportedUserId={id}
+          reportedUserName={name}
+        />
         {posts?.map((item, index) => (
           <div
             key={item.id}

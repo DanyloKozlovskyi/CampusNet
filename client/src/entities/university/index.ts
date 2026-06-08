@@ -10,6 +10,7 @@ export {
   verifyUniversityEmail,
   resendUniversityVerificationEmail,
   getUniversityEmailVerificationStatus,
+  deactivateUniversityEmail,
 } from "./api";
 export type {
   UniversityInfo,

@@ -34,7 +34,7 @@ public class SmtpEmailService : IEmailService
 		await client.SendMailAsync(message);
 	}
 
-	public async Task SendUniversityVerificationEmailAsync(string to, string verificationUrl, string universityName)
+	public async Task SendUniversityVerificationEmailAsync(string to, string verificationUrl, string deactivationUrl, string universityName)
 	{
 		var subject = $"Підтвердіть ваш університетський email - {universityName}";
 		var htmlBody = $@"
@@ -50,8 +50,11 @@ public class SmtpEmailService : IEmailService
         .content {{ background: #f8fafc; border-radius: 12px; padding: 30px; margin-bottom: 20px; }}
         .button {{ display: inline-block; background: #6366f1; color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; margin: 20px 0; }}
         .button:hover {{ background: #4f46e5; }}
+        .button-secondary {{ display: inline-block; background: #ef4444; color: white !important; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 13px; }}
+        .button-secondary:hover {{ background: #dc2626; }}
         .footer {{ text-align: center; color: #64748b; font-size: 14px; }}
         .university {{ color: #6366f1; font-weight: 600; }}
+        .deactivation-section {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; }}
     </style>
 </head>
 <body>
@@ -64,13 +67,19 @@ public class SmtpEmailService : IEmailService
         </div>
         <div class=""content"">
             <h2>Підтвердіть ваш університетський email</h2>
-            <p>Ви зареєструвались як студент<span class=""university"">{universityName}</span>.</p>
+            <p>Ви зареєструвались як студент <span class=""university"">{universityName}</span>.</p>
             <p>Щоб отримати доступ до університетських чатів та функцій, підтвердіть ваш email:</p>
             <div style=""text-align: center;"">
                 <a href=""{verificationUrl}"" class=""button"">Підтвердити email</a>
             </div>
             <p style=""color: #64748b; font-size: 14px;"">Посилання дійсне протягом 24 годин.</p>
             <p style=""color: #64748b; font-size: 14px;"">Якщо ви не реєструвались на нашій платформі, проігноруйте цей лист.</p>
+            <div class=""deactivation-section"">
+                <p style=""color: #64748b; font-size: 13px; margin-bottom: 10px;"">Підтвердили помилково? Ви можете скасувати верифікацію протягом 30 днів:</p>
+                <div style=""text-align: center;"">
+                    <a href=""{deactivationUrl}"" class=""button-secondary"">Скасувати верифікацію</a>
+                </div>
+            </div>
         </div>
         <div class=""footer"">
             <p>© {DateTime.UtcNow.Year} CampusNet. Всі права захищені.</p>

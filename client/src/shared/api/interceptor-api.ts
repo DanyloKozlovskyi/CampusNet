@@ -67,6 +67,13 @@ api.interceptors.response.use(
       }
     }
 
+    if (response?.status === 403 && response?.data?.errors?.UserBanned) {
+      setCookie("access_token", "");
+      setCookie("refresh_token", "");
+      window.location.href = "/sign-in?banned=true";
+      return Promise.reject(error);
+    }
+
     if (
       response?.status >= 500 &&
       window.location.pathname !== "/something-went-wrong"

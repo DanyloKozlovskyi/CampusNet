@@ -143,6 +143,42 @@ namespace SocialMedia.Application.Identity
 
 		public Guid? ValidateEmailVerificationToken(string token)
 		{
+			return ValidateTokenWithPurpose(token, "email-verification");
+		}
+
+		public string CreateEmailDeactivationToken(Guid userId)
+		{
+			DateTime expiration = DateTime.UtcNow.AddDays(30);
+
+			Claim[] claims = new Claim[]
+			{
+				new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+				new Claim("purpose", "email-deactivation"),
+				new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+			};
+
+			SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+			SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+			JwtSecurityToken tokenGenerator = new JwtSecurityToken(
+				configuration["JWT:Issuer"],
+				configuration["JWT:Audience"],
+				claims,
+				expires: expiration,
+				signingCredentials: signingCredentials
+			);
+
+			JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+			return tokenHandler.WriteToken(tokenGenerator);
+		}
+
+		public Guid? ValidateEmailDeactivationToken(string token)
+		{
+			return ValidateTokenWithPurpose(token, "email-deactivation");
+		}
+
+		private Guid? ValidateTokenWithPurpose(string token, string expectedPurpose)
+		{
 			try
 			{
 				var tokenValidationParameters = new TokenValidationParameters()
@@ -166,7 +202,7 @@ namespace SocialMedia.Application.Identity
 				}
 
 				var purposeClaim = principal.FindFirst("purpose")?.Value;
-				if (purposeClaim != "email-verification")
+				if (purposeClaim != expectedPurpose)
 				{
 					return null;
 				}

@@ -9,4 +9,6 @@ public interface IJwtService
 	ClaimsPrincipal? GetPrincipalFromJwtToken(string? token);
 	string CreateEmailVerificationToken(Guid userId);
 	Guid? ValidateEmailVerificationToken(string token);
+	string CreateEmailDeactivationToken(Guid userId);
+	Guid? ValidateEmailDeactivationToken(string token);
 }

@@ -137,3 +137,13 @@ export async function getUniversityEmailVerificationStatus(): Promise<EmailVerif
   );
   return response.data;
 }
+
+export async function deactivateUniversityEmail(token: string): Promise<{
+  message: string;
+  universityEmailVerified: boolean;
+}> {
+  const response = await api.get(
+    `${ENDPOINTS.ACCOUNT}/DeactivateUniversityEmail?token=${token}`,
+  );
+  return response.data;
+}

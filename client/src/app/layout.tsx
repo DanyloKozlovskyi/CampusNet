@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  title: "CampusNet",
+  description: "Connect with your university community",
   verification: {
     google: "I5K7sfvrr8sichoYFJgeJHtq2voul94qTofpvQt07VQ",
   },

@@ -119,8 +119,7 @@ namespace SocialMedia.WebApi.Controllers
 			// Validation 
 			if (!ModelState.IsValid)
 			{
-				string errorMessages = string.Join(" | ", ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage));
-				return Problem(errorMessages);
+				return ValidationProblem(ModelState);
 			}
 
 			// Create user
@@ -151,8 +150,12 @@ namespace SocialMedia.WebApi.Controllers
 				return Ok(authenticationResponse);
 			}
 
-			string errorMessage = string.Join(" | ", result.Errors.Select(e => e.Description));
-			return Problem(errorMessage);
+			// Return Identity errors in Problem Details format
+			foreach (var error in result.Errors)
+			{
+				ModelState.AddModelError(error.Code, error.Description);
+			}
+			return ValidationProblem(ModelState);
 		}
 
 		[HttpGet("[action]")]
@@ -175,8 +178,7 @@ namespace SocialMedia.WebApi.Controllers
 			// Validation 
 			if (!ModelState.IsValid)
 			{
-				string errorMessages = string.Join(" | ", ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage));
-				return Problem(errorMessages);
+				return ValidationProblem(ModelState);
 			}
 
 			var result = await _signInManager.PasswordSignInAsync(loginDTO.Email, loginDTO.Password, isPersistent: false, lockoutOnFailure: false);
@@ -187,6 +189,13 @@ namespace SocialMedia.WebApi.Controllers
 
 				if (user == null)
 					return NoContent();
+
+				if (user.IsBanned)
+				{
+					await _signInManager.SignOutAsync();
+					ModelState.AddModelError("UserBanned", user.BanReason ?? "Your account has been banned");
+					return ValidationProblem(ModelState);
+				}
 
 				await _signInManager.SignInAsync(user, isPersistent: false);
 
@@ -205,7 +214,9 @@ namespace SocialMedia.WebApi.Controllers
 
 				return Ok(authenticationResponse);
 			}
-			return Problem("Invalid email or password");
+
+			ModelState.AddModelError("InvalidCredentials", "Invalid email or password");
+			return ValidationProblem(ModelState);
 		}
 
 		[HttpGet("[action]")]
@@ -520,15 +531,18 @@ namespace SocialMedia.WebApi.Controllers
 				return BadRequest("University info not set");
 
 			var token = _jwtService.CreateEmailVerificationToken(userId.Value);
+			var deactivationToken = _jwtService.CreateEmailDeactivationToken(userId.Value);
 
 			var frontendUrl = _configuration["FrontendUrl"];
 			var verificationUrl = $"{frontendUrl}/verify-university-email?token={token}";
+			var deactivationUrl = $"{frontendUrl}/deactivate-university-email?token={deactivationToken}";
 
 			try
 			{
 				await _emailService.SendUniversityVerificationEmailAsync(
 					user.Email!,
 					verificationUrl,
+					deactivationUrl,
 					nameToUse
 				);
 			}
@@ -599,6 +613,36 @@ namespace SocialMedia.WebApi.Controllers
 				universityDomain = user.UniversityDomain,
 				universityName = user.UniversityName,
 				email = user.Email
+			});
+		}
+
+		[HttpGet("[action]")]
+		[AllowAnonymous]
+		public async Task<IActionResult> DeactivateUniversityEmail([FromQuery] string token)
+		{
+			if (string.IsNullOrEmpty(token))
+				return BadRequest("Token is required");
+
+			var userId = _jwtService.ValidateEmailDeactivationToken(token);
+			if (userId == null)
+				return BadRequest("Invalid or expired token");
+
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+				return BadRequest("User not found");
+
+			if (!user.UniversityEmailVerified)
+				return Ok(new { message = "Email verification already deactivated", universityEmailVerified = false });
+
+			user.UniversityEmailVerified = false;
+
+			var result = await _userManager.UpdateAsync(user);
+			if (!result.Succeeded)
+				return BadRequest(result.Errors);
+
+			return Ok(new { 
+				message = "University email verification deactivated successfully", 
+				universityEmailVerified = false
 			});
 		}
 	}

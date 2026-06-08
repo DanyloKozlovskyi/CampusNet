@@ -28,6 +28,7 @@ using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Likes;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Roles;
 using SocialMedia.Infrastructure.Persistence.Sql.Seeders.Users;
 using SocialMedia.WebApi.Hubs;
+using SocialMedia.WebApi.Middleware;
 using StackExchange.Redis;
 using SocialMedia.WebApi;
 using SocialMedia.Application.Chat;
@@ -238,6 +239,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseBannedUserCheck();
 
 app.MapControllers();
 app.MapHub<ChatHub>("/api/hubs/chat");

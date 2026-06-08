@@ -54,8 +54,14 @@
   }
 }
 
-.followButton {
+.actionButtons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
   margin-top: 16px;
+}
+
+.followButton {
   background-color: #1d9bf0;
   color: #ffffff;
   border: none;
@@ -86,5 +92,25 @@
       color: #f4212e;
       background-color: rgba(244, 33, 46, 0.1);
     }
+  }
+}
+
+.reportButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #cfd9de;
+  background: transparent;
+  color: #536471;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #f4212e;
+    color: #f4212e;
+    background-color: rgba(244, 33, 46, 0.1);
   }
 }

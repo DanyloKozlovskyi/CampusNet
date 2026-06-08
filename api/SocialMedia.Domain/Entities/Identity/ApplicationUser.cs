@@ -33,4 +33,10 @@ public class ApplicationUser : IdentityUser<Guid>
 
 	// User interests for feed recommendations (stored as JSON array)
 	public List<string> Interests { get; set; } = new();
+
+	// Ban system
+	public bool IsBanned { get; set; } = false;
+	public string? BanReason { get; set; }
+	public DateTime? BannedAt { get; set; }
+	public Guid? BannedByAdminId { get; set; }
 }

@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ClientIntlProvider } from "@app/providers";
 import { AuthLayout, MainLayout } from "@app/layout/index";
 import { getCookie } from "@shared/api/helpers";
+import { SplashScreen } from "@shared/ui/splash-screen";
 
 export default function LayoutWrapper({
   children,
@@ -41,14 +42,16 @@ export default function LayoutWrapper({
   }
 
   return (
-    <ClientIntlProvider>
-      {isAuthPage ? (
-        <AuthLayout>{children}</AuthLayout>
-      ) : isErrorPage ? (
-        <>{children}</>
-      ) : (
-        <MainLayout>{children}</MainLayout>
-      )}
-    </ClientIntlProvider>
+    <SplashScreen>
+      <ClientIntlProvider>
+        {isAuthPage ? (
+          <AuthLayout>{children}</AuthLayout>
+        ) : isErrorPage ? (
+          <>{children}</>
+        ) : (
+          <MainLayout>{children}</MainLayout>
+        )}
+      </ClientIntlProvider>
+    </SplashScreen>
   );
 }

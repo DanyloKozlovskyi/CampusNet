@@ -5,6 +5,7 @@ const ENDPOINTS = {
   BLOG: "blog",
   IMAGES: "images",
   VIDEOS: "video",
+  REPORT: "report",
 };
 
 export { ORIGIN, ENDPOINTS };
