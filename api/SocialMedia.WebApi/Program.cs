@@ -73,11 +73,11 @@ builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddDbContext<SocialMediaDbContext>(options =>
 {
-	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)).EnableSensitiveDataLogging();
+	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery).EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null)).EnableSensitiveDataLogging();
 });
 builder.Services.AddDbContextFactory<SocialMediaDbContext>(options =>
 {
-	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+	options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), opt => opt.CommandTimeout(60).UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery).EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null));
 }, ServiceLifetime.Scoped);
 builder.Services.AddScoped<IRecommendationDbContextFactory>(sp =>
 	new RecommendationDbContextFactoryAdapter<SocialMediaDbContext>(sp.GetRequiredService<IDbContextFactory<SocialMediaDbContext>>()));
